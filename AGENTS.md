@@ -11,6 +11,9 @@ PayIt is a Go-based Stripe integration demo. Use this guide to deliver focused c
 
 ## Build, Test, and Development Commands
 
+- Prefer the Makefile workflow for local checks; these commands set local caches so they work in sandboxed environments.
+- After each code change run formatting, linting, and test suites via `make fmt lint test` to ensure consistency, coverage visibility, and to prevent cached results. If the Makefile is missing, create it before coding.
+- After verifying changes, create a conventional commit (e.g., `feat: add checkout handler`) so the history captures intent and scope.
 - `go run ./cmd/payit` — start the local server, loading configuration from `.env.local` when present.
 - `go build ./...` — ensure every package compiles prior to opening a PR.
 - `go test ./...` — execute the full unit suite; add `-run TestStripe` to focus on Stripe-specific tests during iteration.
