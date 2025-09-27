@@ -23,6 +23,7 @@ type Handler struct {
 	cfg      config.Config
 	checkout checkoutService
 	page     *template.Template
+	fs       fs.FS
 }
 
 // NewServer constructs the root HTTP handler, wiring Stripe-backed endpoints as they are implemented.
@@ -35,12 +36,10 @@ func NewServer(cfg config.Config) http.Handler {
 		panic(fmt.Errorf("failed to load static assets: %w", err))
 	}
 
-	h := &Handler{cfg: cfg, checkout: checkoutSvc, page: tmpl}
+	h := &Handler{cfg: cfg, checkout: checkoutSvc, page: tmpl, fs: staticFS}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /api/checkout", h.createCheckoutSession)
-	mux.Handle("GET /", http.HandlerFunc(h.renderCheckoutPage))
-	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFS))))
+	h.registerRoutes(mux)
 
 	return mux
 }
