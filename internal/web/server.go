@@ -2,30 +2,45 @@ package web
 
 import (
 	"context"
+	"fmt"
+	"html/template"
+	"io/fs"
 	"net/http"
 
-	stripe "github.com/rjNemo/payit/internal/stripe"
-
 	"github.com/rjNemo/payit/config"
+	"github.com/rjNemo/payit/internal/payments"
+	"github.com/rjNemo/payit/internal/payments/driver/stripe"
+	"github.com/rjNemo/payit/internal/payments/service"
+	webassets "github.com/rjNemo/payit/web"
 )
 
 type checkoutService interface {
-	CreateSession(context.Context, stripe.CheckoutSessionRequest) (stripe.CheckoutSessionResult, error)
+	CreateSession(context.Context, payments.CheckoutSessionRequest) (payments.CheckoutSessionResult, error)
 }
 
 // Handler aggregates dependencies required by HTTP handlers.
 type Handler struct {
 	cfg      config.Config
 	checkout checkoutService
+	page     *template.Template
 }
 
 // NewServer constructs the root HTTP handler, wiring Stripe-backed endpoints as they are implemented.
 func NewServer(cfg config.Config) http.Handler {
-	checkoutSvc := stripe.NewService(cfg.StripeSecretKey, cfg.Product)
-	h := &Handler{cfg: cfg, checkout: checkoutSvc}
+	driver := stripe.NewDriver(cfg.StripeSecretKey, cfg.Product)
+	checkoutSvc := service.NewCheckoutService(driver)
+	tmpl := template.Must(template.ParseFS(webassets.Assets, "templates/index.html"))
+	staticFS, err := fs.Sub(webassets.Assets, "static")
+	if err != nil {
+		panic(fmt.Errorf("failed to load static assets: %w", err))
+	}
+
+	h := &Handler{cfg: cfg, checkout: checkoutSvc, page: tmpl}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /api/checkout", h.createCheckoutSession)
+	mux.Handle("GET /", http.HandlerFunc(h.renderCheckoutPage))
+	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFS))))
 
 	return mux
 }

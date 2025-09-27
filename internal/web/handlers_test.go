@@ -9,19 +9,19 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	stripe "github.com/rjNemo/payit/internal/stripe"
+	"github.com/rjNemo/payit/internal/payments"
 )
 
 type fakeCheckoutService struct {
-	result stripe.CheckoutSessionResult
+	result payments.CheckoutSessionResult
 	err    error
-	req    stripe.CheckoutSessionRequest
+	req    payments.CheckoutSessionRequest
 }
 
-func (f *fakeCheckoutService) CreateSession(ctx context.Context, req stripe.CheckoutSessionRequest) (stripe.CheckoutSessionResult, error) {
+func (f *fakeCheckoutService) CreateSession(ctx context.Context, req payments.CheckoutSessionRequest) (payments.CheckoutSessionResult, error) {
 	f.req = req
 	if f.err != nil {
-		return stripe.CheckoutSessionResult{}, f.err
+		return payments.CheckoutSessionResult{}, f.err
 	}
 	return f.result, nil
 }
@@ -29,7 +29,7 @@ func (f *fakeCheckoutService) CreateSession(ctx context.Context, req stripe.Chec
 func TestCreateCheckoutSessionSuccess(t *testing.T) {
 	handler := &Handler{
 		checkout: &fakeCheckoutService{
-			result: stripe.CheckoutSessionResult{ID: "cs_test_1", URL: "https://stripe.test/checkout"},
+			result: payments.CheckoutSessionResult{ID: "cs_test_1", URL: "https://stripe.test/checkout"},
 		},
 	}
 
@@ -47,7 +47,7 @@ func TestCreateCheckoutSessionSuccess(t *testing.T) {
 		t.Fatalf("expected json content type, got %s", ct)
 	}
 
-	var payload stripe.CheckoutSessionResult
+	var payload payments.CheckoutSessionResult
 	if err := json.Unmarshal(rec.Body.Bytes(), &payload); err != nil {
 		t.Fatalf("expected valid json response: %v", err)
 	}
@@ -63,7 +63,7 @@ func TestCreateCheckoutSessionSuccess(t *testing.T) {
 
 func TestCreateCheckoutSessionDefaultsQuantity(t *testing.T) {
 	fakeSvc := &fakeCheckoutService{
-		result: stripe.CheckoutSessionResult{ID: "cs_test_1"},
+		result: payments.CheckoutSessionResult{ID: "cs_test_1"},
 	}
 	handler := &Handler{checkout: fakeSvc}
 

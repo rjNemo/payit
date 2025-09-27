@@ -6,17 +6,16 @@ import (
 	"io"
 	"net/http"
 
-	stripe "github.com/rjNemo/payit/internal/stripe"
+	"github.com/rjNemo/payit/internal/payments"
 )
 
 func (h *Handler) createCheckoutSession(w http.ResponseWriter, r *http.Request) {
-	var req stripe.CheckoutSessionRequest
+	var req payments.CheckoutSessionRequest
 
 	if r.Body != nil {
 		defer func(body io.ReadCloser) {
 			_ = body.Close()
 		}(r.Body)
-
 		dec := json.NewDecoder(r.Body)
 		dec.DisallowUnknownFields()
 

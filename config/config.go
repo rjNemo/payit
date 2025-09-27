@@ -97,7 +97,9 @@ func applyEnvFile(path string) (retErr error) {
 
 		key := strings.TrimSpace(parts[0])
 		value := strings.TrimSpace(parts[1])
-		_ = os.Setenv(key, value)
+		if _, exists := os.LookupEnv(key); !exists {
+			_ = os.Setenv(key, value)
+		}
 	}
 
 	if err := scanner.Err(); err != nil {

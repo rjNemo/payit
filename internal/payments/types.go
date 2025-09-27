@@ -1,4 +1,4 @@
-package stripe
+package payments
 
 // CheckoutSessionRequest captures optional inputs for creating a checkout session.
 type CheckoutSessionRequest struct {

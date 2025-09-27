@@ -5,33 +5,35 @@ import (
 	"errors"
 	"testing"
 
+	stripesdk "github.com/stripe/stripe-go/v78"
+
 	"github.com/rjNemo/payit/config"
-	stripeapi "github.com/stripe/stripe-go/v78"
+	"github.com/rjNemo/payit/internal/payments"
 )
 
 type fakeSessionCreator struct {
-	lastParams *stripeapi.CheckoutSessionParams
-	result     *stripeapi.CheckoutSession
+	lastParams *stripesdk.CheckoutSessionParams
+	result     *stripesdk.CheckoutSession
 	err        error
 }
 
-func (f *fakeSessionCreator) New(params *stripeapi.CheckoutSessionParams) (*stripeapi.CheckoutSession, error) {
+func (f *fakeSessionCreator) New(params *stripesdk.CheckoutSessionParams) (*stripesdk.CheckoutSession, error) {
 	f.lastParams = params
 	return f.result, f.err
 }
 
-func TestService_CreateSessionSuccess(t *testing.T) {
+func TestDriver_CreateSessionSuccess(t *testing.T) {
 	product := testProductConfig()
 	fake := &fakeSessionCreator{
-		result: &stripeapi.CheckoutSession{
+		result: &stripesdk.CheckoutSession{
 			ID:  "cs_test_123",
 			URL: "https://stripe.test/checkout",
 		},
 	}
 
-	svc := &Service{product: product, sessions: fake}
+	driver := &Driver{product: product, sessions: fake}
 
-	res, err := svc.CreateSession(context.Background(), CheckoutSessionRequest{})
+	res, err := driver.CreateSession(context.Background(), payments.CheckoutSessionRequest{})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -47,7 +49,7 @@ func TestService_CreateSessionSuccess(t *testing.T) {
 	if params.Context == nil {
 		t.Fatal("expected context to propagate")
 	}
-	if params.Mode == nil || *params.Mode != string(stripeapi.CheckoutSessionModePayment) {
+	if params.Mode == nil || *params.Mode != string(stripesdk.CheckoutSessionModePayment) {
 		t.Fatalf("unexpected mode: %v", params.Mode)
 	}
 	if len(params.PaymentMethodTypes) != 1 || params.PaymentMethodTypes[0] == nil || *params.PaymentMethodTypes[0] != "card" {
@@ -82,15 +84,15 @@ func TestService_CreateSessionSuccess(t *testing.T) {
 	}
 }
 
-func TestService_CreateSessionWithCustomQuantity(t *testing.T) {
+func TestDriver_CreateSessionWithCustomQuantity(t *testing.T) {
 	product := testProductConfig()
 	fake := &fakeSessionCreator{
-		result: &stripeapi.CheckoutSession{},
+		result: &stripesdk.CheckoutSession{},
 	}
 
-	svc := &Service{product: product, sessions: fake}
+	driver := &Driver{product: product, sessions: fake}
 
-	_, err := svc.CreateSession(context.Background(), CheckoutSessionRequest{Quantity: 3})
+	_, err := driver.CreateSession(context.Background(), payments.CheckoutSessionRequest{Quantity: 3})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -106,25 +108,25 @@ func TestService_CreateSessionWithCustomQuantity(t *testing.T) {
 	}
 }
 
-func TestService_CreateSessionError(t *testing.T) {
+func TestDriver_CreateSessionError(t *testing.T) {
 	product := testProductConfig()
 	fake := &fakeSessionCreator{err: errors.New("boom")}
 
-	svc := &Service{product: product, sessions: fake}
+	driver := &Driver{product: product, sessions: fake}
 
-	_, err := svc.CreateSession(context.Background(), CheckoutSessionRequest{})
+	_, err := driver.CreateSession(context.Background(), payments.CheckoutSessionRequest{})
 	if err == nil {
 		t.Fatal("expected error")
 	}
 }
 
-func TestService_CreateSessionNilSession(t *testing.T) {
+func TestDriver_CreateSessionNilSession(t *testing.T) {
 	product := testProductConfig()
 	fake := &fakeSessionCreator{}
 
-	svc := &Service{product: product, sessions: fake}
+	driver := &Driver{product: product, sessions: fake}
 
-	_, err := svc.CreateSession(context.Background(), CheckoutSessionRequest{})
+	_, err := driver.CreateSession(context.Background(), payments.CheckoutSessionRequest{})
 	if err == nil {
 		t.Fatal("expected error for nil session")
 	}
