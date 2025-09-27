@@ -10,16 +10,13 @@ import (
 )
 
 func (h *Handler) createCheckoutSession(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		w.Header().Set("Allow", http.MethodPost)
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	defer r.Body.Close()
-
 	var req stripe.CheckoutSessionRequest
+
 	if r.Body != nil {
+		defer func(body io.ReadCloser) {
+			_ = body.Close()
+		}(r.Body)
+
 		dec := json.NewDecoder(r.Body)
 		dec.DisallowUnknownFields()
 
@@ -30,9 +27,7 @@ func (h *Handler) createCheckoutSession(w http.ResponseWriter, r *http.Request) 
 				http.Error(w, "invalid request payload", http.StatusBadRequest)
 				return
 			}
-		}
-
-		if dec.More() {
+		} else if dec.More() {
 			http.Error(w, "unexpected data in request body", http.StatusBadRequest)
 			return
 		}

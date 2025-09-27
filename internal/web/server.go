@@ -25,7 +25,7 @@ func NewServer(cfg config.Config) http.Handler {
 	h := &Handler{cfg: cfg, checkout: checkoutSvc}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/api/checkout", h.createCheckoutSession)
+	mux.HandleFunc("POST /api/checkout", h.createCheckoutSession)
 
 	return mux
 }

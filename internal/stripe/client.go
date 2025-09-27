@@ -36,8 +36,8 @@ func (s *Service) CreateSession(ctx context.Context, req CheckoutSessionRequest)
 		quantity = 1
 	}
 
-    params := &stripe.CheckoutSessionParams{}
-    params.Context = ctx
+	params := &stripe.CheckoutSessionParams{}
+	params.Context = ctx
 	params.SuccessURL = stripe.String(s.product.SuccessURL)
 	params.CancelURL = stripe.String(s.product.CancelURL)
 	params.Mode = stripe.String(string(stripe.CheckoutSessionModePayment))

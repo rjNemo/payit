@@ -110,11 +110,13 @@ func TestCreateCheckoutSessionStripeFailure(t *testing.T) {
 
 func TestCreateCheckoutSessionMethodNotAllowed(t *testing.T) {
 	handler := &Handler{checkout: &fakeCheckoutService{}}
+	mux := http.NewServeMux()
+	mux.HandleFunc("POST /api/checkout", handler.createCheckoutSession)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/checkout", http.NoBody)
 	rec := httptest.NewRecorder()
 
-	handler.createCheckoutSession(rec, req)
+	mux.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusMethodNotAllowed {
 		t.Fatalf("expected status 405, got %d", rec.Code)
