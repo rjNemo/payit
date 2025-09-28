@@ -4,7 +4,11 @@ GOCACHE ?= $(CURDIR)/.cache
 GOMODCACHE ?= $(CURDIR)/.modcache
 GOFLAGS ?= -count=1
 
-.PHONY: fmt lint test clean tidy
+.PHONY: dev fmt lint test clean tidy
+
+dev:
+	@echo "Starting development environment"
+	@GOCACHE=$(GOCACHE) GOMODCACHE=$(GOMODCACHE) air -c .air.toml
 
 fmt:
 	@echo "Formatting Go files"
