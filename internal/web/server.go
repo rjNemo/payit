@@ -41,5 +41,5 @@ func NewServer(cfg config.Config) http.Handler {
 	mux := http.NewServeMux()
 	h.registerRoutes(mux)
 
-	return mux
+	return LoggerMiddleware(mux)
 }

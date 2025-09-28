@@ -37,7 +37,7 @@ func TestCreateCheckoutSessionSuccess(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/api/checkout", bytes.NewReader(body))
 	rec := httptest.NewRecorder()
 
-	handler.createCheckoutSession(rec, req)
+	handler.createCheckoutSession()(rec, req)
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", rec.Code)
@@ -70,7 +70,7 @@ func TestCreateCheckoutSessionDefaultsQuantity(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/api/checkout", http.NoBody)
 	rec := httptest.NewRecorder()
 
-	handler.createCheckoutSession(rec, req)
+	handler.createCheckoutSession()(rec, req)
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", rec.Code)
@@ -86,7 +86,7 @@ func TestCreateCheckoutSessionRejectsInvalidJSON(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/api/checkout", bytes.NewBufferString("{"))
 	rec := httptest.NewRecorder()
 
-	handler.createCheckoutSession(rec, req)
+	handler.createCheckoutSession()(rec, req)
 
 	if rec.Code != http.StatusBadRequest {
 		t.Fatalf("expected status 400, got %d", rec.Code)
@@ -101,7 +101,7 @@ func TestCreateCheckoutSessionStripeFailure(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/api/checkout", http.NoBody)
 	rec := httptest.NewRecorder()
 
-	handler.createCheckoutSession(rec, req)
+	handler.createCheckoutSession()(rec, req)
 
 	if rec.Code != http.StatusInternalServerError {
 		t.Fatalf("expected status 500, got %d", rec.Code)
@@ -111,7 +111,7 @@ func TestCreateCheckoutSessionStripeFailure(t *testing.T) {
 func TestCreateCheckoutSessionMethodNotAllowed(t *testing.T) {
 	handler := &Handler{checkout: &fakeCheckoutService{}}
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /api/checkout", handler.createCheckoutSession)
+	mux.HandleFunc("POST /api/checkout", handler.createCheckoutSession())
 
 	req := httptest.NewRequest(http.MethodGet, "/api/checkout", http.NoBody)
 	rec := httptest.NewRecorder()
