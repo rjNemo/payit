@@ -9,6 +9,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
     />
     <link rel="stylesheet" href="/static/main.css" />
+    <script defer src="/static/app.js"></script>
   </head>
   <body>
     <main class="card">
@@ -17,13 +18,12 @@
       <div class="price">
         {{ .PriceDisplay }} <span class="currency">{{ .Currency }}</span>
       </div>
-      <form id="checkout-form" action="/api/checkout">
+      <form id="checkout-form" action="/api/checkout/" method="POST">
         <label for="quantity">Quantity</label>
         <input id="quantity" name="quantity" type="number" value="1" min="1" />
         <button id="checkout-button" type="submit">Buy now</button>
       </form>
-      <div id="message" role="status" aria-live="polite"></div>
+      <div id="message" role="status" aria-live="polite" />
     </main>
-    <script src="/static/app.js" defer></script>
   </body>
 </html>

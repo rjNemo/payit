@@ -1,10 +1,11 @@
 (() => {
-  const form = document.getElementById("checkout-form");
-  const button = document.getElementById("checkout-button");
-  const qtyInput = document.getElementById("quantity");
-  const message = document.getElementById("message");
+  const form = document.querySelector("form");
+  const button = document.querySelector("button");
+  const qtyInput = document.querySelector("input#quantity");
+  const message = document.querySelector("div#message");
 
   if (!form || !button || !qtyInput) {
+    console.error("Missing required form elements");
     return;
   }
 
