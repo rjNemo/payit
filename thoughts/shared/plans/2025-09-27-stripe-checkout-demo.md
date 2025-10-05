@@ -39,7 +39,7 @@ Create the application structure, entrypoint, and configuration loader for envir
 ### Changes Required
 
 **File**: `go.mod`  
-**Changes**: Add required module dependencies (`github.com/stripe/stripe-go/v78`, optional `github.com/joho/godotenv` if used) and tidy module.
+**Changes**: Add required module dependencies (`github.com/stripe/stripe-go/v83`, optional `github.com/joho/godotenv` if used) and tidy module.
 
 **File**: `cmd/payit/main.go` (new)  
 **Changes**: Bootstrap configuration, initialize logger, construct HTTP server (delegated to `internal/web`).
@@ -82,7 +82,7 @@ type Config struct {
 
 #### Manual Verification
 
-- [x] Application starts with placeholder server: `go run ./cmd/payit` *(bind restricted in sandbox; confirmed startup log before failure)*
+- [x] Application starts with placeholder server: `go run ./cmd/payit` _(bind restricted in sandbox; confirmed startup log before failure)_
 - [x] Missing environment variables cause a clear startup error
 
 ## Phase 2: Stripe Checkout Backend

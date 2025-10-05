@@ -5,19 +5,19 @@ import (
 	"errors"
 	"testing"
 
-	stripesdk "github.com/stripe/stripe-go/v78"
+	"github.com/stripe/stripe-go/v83"
 
 	"github.com/rjNemo/payit/config"
 	"github.com/rjNemo/payit/internal/payments"
 )
 
 type fakeSessionCreator struct {
-	lastParams *stripesdk.CheckoutSessionParams
-	result     *stripesdk.CheckoutSession
+	lastParams *stripe.CheckoutSessionCreateParams
+	result     *stripe.CheckoutSession
 	err        error
 }
 
-func (f *fakeSessionCreator) New(params *stripesdk.CheckoutSessionParams) (*stripesdk.CheckoutSession, error) {
+func (f *fakeSessionCreator) Create(ctx context.Context, params *stripe.CheckoutSessionCreateParams) (*stripe.CheckoutSession, error) {
 	f.lastParams = params
 	return f.result, f.err
 }
@@ -25,7 +25,7 @@ func (f *fakeSessionCreator) New(params *stripesdk.CheckoutSessionParams) (*stri
 func TestDriver_CreateSessionSuccess(t *testing.T) {
 	product := testProductConfig()
 	fake := &fakeSessionCreator{
-		result: &stripesdk.CheckoutSession{
+		result: &stripe.CheckoutSession{
 			ID:  "cs_test_123",
 			URL: "https://stripe.test/checkout",
 		},
@@ -49,7 +49,7 @@ func TestDriver_CreateSessionSuccess(t *testing.T) {
 	if params.Context == nil {
 		t.Fatal("expected context to propagate")
 	}
-	if params.Mode == nil || *params.Mode != string(stripesdk.CheckoutSessionModePayment) {
+	if params.Mode == nil || *params.Mode != string(stripe.CheckoutSessionModePayment) {
 		t.Fatalf("unexpected mode: %v", params.Mode)
 	}
 	if len(params.PaymentMethodTypes) != 1 || params.PaymentMethodTypes[0] == nil || *params.PaymentMethodTypes[0] != "card" {
@@ -87,7 +87,7 @@ func TestDriver_CreateSessionSuccess(t *testing.T) {
 func TestDriver_CreateSessionWithCustomQuantity(t *testing.T) {
 	product := testProductConfig()
 	fake := &fakeSessionCreator{
-		result: &stripesdk.CheckoutSession{},
+		result: &stripe.CheckoutSession{},
 	}
 
 	driver := &Driver{product: product, sessions: fake}

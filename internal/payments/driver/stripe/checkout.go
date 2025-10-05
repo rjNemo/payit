@@ -4,15 +4,14 @@ import (
 	"context"
 	"errors"
 
-	stripesdk "github.com/stripe/stripe-go/v78"
-	"github.com/stripe/stripe-go/v78/client"
+	"github.com/stripe/stripe-go/v83"
 
 	"github.com/rjNemo/payit/config"
 	"github.com/rjNemo/payit/internal/payments"
 )
 
 type sessionCreator interface {
-	New(params *stripesdk.CheckoutSessionParams) (*stripesdk.CheckoutSession, error)
+	Create(ctx context.Context, params *stripe.CheckoutSessionCreateParams) (*stripe.CheckoutSession, error)
 }
 
 // Driver implements the CheckoutDriver interface using the Stripe SDK.
@@ -23,11 +22,11 @@ type Driver struct {
 
 // NewDriver creates a Stripe-backed checkout driver with the provided credentials.
 func NewDriver(apiKey string, product config.ProductConfig) *Driver {
-	stripeClient := client.New(apiKey, nil)
+	stripeClient := stripe.NewClient(apiKey, nil)
 
 	return &Driver{
 		product:  product,
-		sessions: stripeClient.CheckoutSessions,
+		sessions: stripeClient.V1CheckoutSessions,
 	}
 }
 
@@ -38,26 +37,26 @@ func (d *Driver) CreateSession(ctx context.Context, req payments.CheckoutSession
 		quantity = 1
 	}
 
-	params := &stripesdk.CheckoutSessionParams{}
+	params := &stripe.CheckoutSessionCreateParams{}
 	params.Context = ctx
-	params.SuccessURL = stripesdk.String(d.product.SuccessURL)
-	params.CancelURL = stripesdk.String(d.product.CancelURL)
-	params.Mode = stripesdk.String(string(stripesdk.CheckoutSessionModePayment))
-	params.PaymentMethodTypes = stripesdk.StringSlice([]string{"card"})
+	params.SuccessURL = stripe.String(d.product.SuccessURL)
+	params.CancelURL = stripe.String(d.product.CancelURL)
+	params.Mode = stripe.String(string(stripe.CheckoutSessionModePayment))
+	params.PaymentMethodTypes = stripe.StringSlice([]string{"card"})
 
-	params.LineItems = append(params.LineItems, &stripesdk.CheckoutSessionLineItemParams{
-		Quantity: stripesdk.Int64(quantity),
-		PriceData: &stripesdk.CheckoutSessionLineItemPriceDataParams{
-			Currency:   stripesdk.String(d.product.Currency),
-			UnitAmount: stripesdk.Int64(d.product.PriceCents),
-			ProductData: &stripesdk.CheckoutSessionLineItemPriceDataProductDataParams{
-				Name:        stripesdk.String(d.product.Name),
-				Description: stripesdk.String(d.product.Description),
+	params.LineItems = append(params.LineItems, &stripe.CheckoutSessionCreateLineItemParams{
+		Quantity: stripe.Int64(quantity),
+		PriceData: &stripe.CheckoutSessionCreateLineItemPriceDataParams{
+			Currency:   stripe.String(d.product.Currency),
+			UnitAmount: stripe.Int64(d.product.PriceCents),
+			ProductData: &stripe.CheckoutSessionCreateLineItemPriceDataProductDataParams{
+				Name:        stripe.String(d.product.Name),
+				Description: stripe.String(d.product.Description),
 			},
 		},
 	})
 
-	session, err := d.sessions.New(params)
+	session, err := d.sessions.Create(ctx, params)
 	if err != nil {
 		return payments.CheckoutSessionResult{}, err
 	}
